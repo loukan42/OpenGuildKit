@@ -82,6 +82,28 @@ A run that executes new checks refreshes the active references afterward. If the
 
 The workflow templates retain their pilot branch names and configuration filenames. Adjust them for the deployment. Keep checkout, validation and report publication on trusted revisions. The project keeps its normal merge review and approval settings.
 
+### Run a single check in Jenkins
+
+For a job that evaluates one target commit, use the [Jenkins check launcher](pilot/run-kit.mjs). The agent needs Node.js 22 or later, Git, GitHub CLI and `tar`. Run the launcher from the root of the target repository with `HEAD` on a trusted revision containing the approved `openguildkit.json` profile and the `openguildkit-kit.json` manifest. Fetch the target commit into that checkout and the policy commit into the policy checkout before running the job.
+
+The manifest pins the release archive by repository, version and SHA-256. For the OpenGuildKit v0.16.1 release, put this in `openguildkit-kit.json`.
+
+```json
+{
+  "repository": "Sandbox-podcast/OpenGuildKit",
+  "version": "0.16.1",
+  "sha256": "7057f7c47d54f5fe48252c8a57f09ac36ceb3d127f51d07a6eef76908b235e78"
+}
+```
+
+When changing versions, use the SHA-256 for the Node archive from that release's `SHA256SUMS.txt`. Set `OPENGUILDKIT_SOURCE` to the absolute path of a trusted OpenGuildKit checkout, and set `POLICY_SHA` and `TARGET_SHA` to the full commit SHAs.
+
+```sh
+node "$OPENGUILDKIT_SOURCE/integrations/ci/pilot/run-kit.mjs" ../policies "$POLICY_SHA" "$TARGET_SHA" openguildkit-result
+```
+
+The launcher verifies the archive and reads the manifest and profile from the trusted `HEAD`. It evaluates the files at `TARGET_SHA`. Archive `openguildkit-result/AGENTS.md` and `openguildkit-result/evidence.json` when produced, including when a required rule fails.
+
 ## Results and errors
 
 `check`, `gate` and the Jenkins helpers in `pilot/` share the exit codes of `openguildkit ci-check`: 0 when the commit conforms or the profile only observes, 1 when the rule fails with `--enforce` or a required profile, and 2 when the evaluation could not run. `reconcile`, `github` and `watch` exit with 2 when their report lists errors.
