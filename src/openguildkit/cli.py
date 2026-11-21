@@ -397,6 +397,7 @@ def _update_catalog(args, root: Path, state: Path) -> None:
             catalog = live
             profile = load_profile(state, catalog)
             if args.apply:
+                sync_instructions(root, profile, catalog)
                 write_lock(state, build_lock(profile, catalog, bundled))
             result = {"changes": [], "conflicts": [], "applied": args.apply, "stale_tasks": [],
                       "note": "The project had no catalog lock. It now pins the installed catalog." if args.apply

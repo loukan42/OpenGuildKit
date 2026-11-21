@@ -216,11 +216,11 @@ def _passes(task: dict) -> dict:
 
 def start_pass(task: dict, board_id: str, mode: str) -> dict:
     """Mark a board's pass as started; starting again replaces a failed or interrupted pass."""
+    passes = _passes(task)
     if board_id not in task["consultation"]["boards"]:
         raise ValueError(f"Board {board_id!r} is not part of this consultation.")
     if mode not in ("subagent", "sequential"):
         raise ValueError("A pass runs as a subagent or in sequence.")
-    passes = _passes(task)
     previous = passes["boards"].get(board_id, {})
     passes["boards"][board_id] = {"status": "started", "mode": mode, "started_at": timestamp(),
                                   "attempts": previous.get("attempts", 0) + 1}

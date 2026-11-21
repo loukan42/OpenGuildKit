@@ -33,7 +33,7 @@ flowchart LR
 | `project.py` | Builds the init questionnaire, validates the profile, recommends packs from the stack, resolves pack dependencies, renders the managed block in `AGENTS.md`, computes the profile fingerprint and checks that instructions are current. |
 | `workflow.py` | Holds the task questionnaire, routes a task to boards, renders the consultation request and the handoff, and validates reviews. |
 | `tasks.py` | Creates task records and enforces the state machine: draft, consulting, reviewed, approved or changes-requested. |
-| `storage.py` | Writes files through a temporary file and `os.replace`, refuses symbolic links, and holds a non-blocking lock on `.openguildkit/.lock`. |
+| `storage.py` | Writes files through a temporary file and `os.replace`, refuses symbolic links, and serialises writing commands with a lock on `.openguildkit/.lock`: a writer waits up to 10 seconds (`OPENGUILDKIT_LOCK_TIMEOUT`, in seconds) for another one to finish, then stops with "Try again". Read commands never take the lock. |
 | `cli.py` | Parses commands, reads answers from files or a terminal, and enforces the interactive approval. |
 
 ## What lives in a project

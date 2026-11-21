@@ -86,5 +86,5 @@ openguildkit patterns --id python-fastapi-postgresql
 - [Optional ChaosFolk end-to-end replays](integrations/chaosfolk/)
 
 - [Architecture](docs/architecture.md) and [task workflow](docs/workflow.md)
-- [Contributing](CONTRIBUTING.md) and [catalog format](docs/catalog-format.md)
+- [Contributing](CONTRIBUTING.md), [catalog format](docs/catalog-format.md) and [testing](docs/testing.md)
 - [Roadmap](docs/roadmap.md) and [MIT license](LICENSE)

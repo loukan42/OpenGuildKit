@@ -84,5 +84,5 @@ openguildkit brains --id product
 - [Documentation du projet et partage avec Documentalist](docs/documentation.md)
 - [Outils de la stack d'entreprise, leurs serveurs MCP et leurs simulations](docs/tools.md)
 - [Tests de bout en bout avec ChaosFolk, en option](integrations/chaosfolk/)
-- [Contribuer](CONTRIBUTING.md) et [format du catalogue](docs/catalog-format.md)
+- [Contribuer](CONTRIBUTING.md), [format du catalogue](docs/catalog-format.md) et [tests](docs/testing.md)
 - [Feuille de route](docs/roadmap.md) et [licence MIT](LICENSE)

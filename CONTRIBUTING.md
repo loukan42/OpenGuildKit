@@ -36,7 +36,7 @@ python -m openguildkit references
 python -m openguildkit patterns
 ```
 
-No runtime dependency. Tests use `unittest` from the standard library.
+No runtime dependency. Tests use `unittest` from the standard library. [Testing](docs/testing.md) lists the kinds of tests (unit, end to end, concurrency, determinism, robustness, performance, upgrade), how to run each one and what they do not cover; `python scripts/bench.py` prints the time of the main commands.
 
 ## Adding a pack
 
@@ -86,7 +86,7 @@ A maintainer validates every replacement in the pull request that makes it. Run 
 
 - Python 3.11+, standard library only at runtime.
 - Keep the CLI offline. It must never call a model provider or the network.
-- Add unit tests in `tests/` and, for a new command, an end-to-end test in `tests/e2e/`.
+- Add unit tests in `tests/` and, for a new command, an end-to-end test in `tests/e2e/`: `tests/test_cli_coverage.py` fails when a command has no test that runs it.
 - Keep messages short and actionable, prefixed `OpenGuildKit:` on errors.
 - Write code, rule packs and contribution docs in English. Reference entries can keep their original language. The French README is maintained alongside the English one.
 

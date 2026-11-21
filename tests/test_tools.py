@@ -256,6 +256,21 @@ class CommandTests(unittest.TestCase):
             self.assertEqual(code, 1)
             self.assertIn("Unknown tool", err)
 
+    def test_call_lists_a_mocks_tools_and_answers_one_call(self):
+        with tempfile.TemporaryDirectory() as directory:
+            code, out, _ = run("--project", directory, "tools", "call", "jira")
+            self.assertEqual(code, 0)
+            self.assertIn("search_issues", out)
+            code, out, _ = run("--project", directory, "tools", "call", "jira", "search_issues", "--args", '{"query": "export"}')
+            self.assertEqual(code, 0)
+            self.assertEqual(json.loads(out)["issues"][0]["key"], "SUP-142")
+            code, out, _ = run("--project", directory, "tools", "call", "jira", "get_issue", "--args", '{"key": "NOPE-1"}')
+            self.assertEqual(code, 1)
+            self.assertIn("not found", out)
+            code, _, err = run("--project", directory, "tools", "call", "jira", "search_issues", "--args", "{not json")
+            self.assertEqual(code, 1)
+            self.assertIn("--args is not valid JSON", err)
+
     def test_every_bundled_mock_loads_and_names_a_registry_tool(self):
         ids = mock_ids()
         self.assertGreaterEqual(len(ids), 15)
