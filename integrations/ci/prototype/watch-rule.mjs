@@ -9,9 +9,25 @@ if (!configPath || !statePath) {
   throw new Error('Usage: node prototype/watch-rule.mjs CONFIG_JSON STATE_JSON');
 }
 
-const { policyRepo, policyRef, repositories } = readJson(configPath);
+const { policyRepo, policyRef, repositories, pullRequests } = readJson(configPath);
+if (pullRequests !== undefined && (
+  !pullRequests || typeof pullRequests !== 'object' || Array.isArray(pullRequests) ||
+  Object.keys(pullRequests).length !== repositories.length ||
+  repositories.some(repo => {
+    const numbers = pullRequests[repo];
+    return !Array.isArray(numbers) || numbers.length === 0 ||
+      numbers.some(number => !Number.isSafeInteger(number) || number < 1) ||
+      new Set(numbers).size !== numbers.length;
+  })
+)) {
+  throw new Error('pullRequests doit contenir une liste de numéros de PR positifs et distincts pour chaque dépôt surveillé.');
+}
 const reportPath = 'result.json';
 rmSync(reportPath, { force: true });
+
+function watchesPullRequest(repo, number) {
+  return pullRequests === undefined || pullRequests[repo]?.includes(number);
+}
 
 function readJson(path) {
   return JSON.parse(readFileSync(path, 'utf8'));
@@ -42,11 +58,14 @@ if (previous.policyCommit === policyCommit && previous.done) {
 }
 
 const rule = readFileAt(policyRepo, policyCommit, policyPath);
-const batch = previous.policyCommit === policyCommit ? previous : {
+const batch = previous.policyCommit === policyCommit ? {
+  ...previous,
+  targets: previous.targets.filter(({ repo, number }) => watchesPullRequest(repo, number)),
+} : {
   policyCommit,
   targets: repositories.flatMap(repo => {
     const pages = JSON.parse(gh(['api', '--paginate', '--slurp', `repos/${repo}/pulls?state=open&per_page=100`]));
-    return pages.flat().map(pr => {
+    return pages.flat().filter(pr => watchesPullRequest(repo, pr.number)).map(pr => {
       if (pr.head.repo?.full_name !== repo) {
         throw new Error(`Le prototype prend en charge les PR internes au dépôt : ${repo}#${pr.number}`);
       }

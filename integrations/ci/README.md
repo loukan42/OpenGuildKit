@@ -50,6 +50,18 @@ Provide the organization and repository IDs, corresponding local Git checkouts, 
       "id": "example/portal",
       "path": "./portal",
       "profileRef": "refs/heads/main",
+      "prNumbers": [1],
+      "workflow": {
+        "file": "openguildkit.yml",
+        "ref": "pilot/recheck-base",
+        "evidenceBranch": "openguildkit-evidence"
+      }
+    },
+    {
+      "id": "example/service",
+      "path": "./service",
+      "profileRef": "refs/heads/main",
+      "prNumbers": [1],
       "workflow": {
         "file": "openguildkit.yml",
         "ref": "pilot/recheck-base",
@@ -59,6 +71,10 @@ Provide the organization and repository IDs, corresponding local Git checkouts, 
   ]
 }
 ```
+
+This configuration watches PR #1 in each repository. Replace the repository names, checkout paths and PR numbers with your pilot's values. Pass this file to the Jenkins installer with `-WatchConfig integration.json`. The scheduled job reads the same file on every run. A policy change reevaluates the selected PRs that are open against their configured base branches, using their current head commits. A project without `prNumbers` watches all open PRs against its configured base branch.
+
+For an older Jenkins job that runs `integrations/ci/prototype/watch-rule.mjs` directly, keep both repositories in `repositories` and add `"pullRequests": {"example/portal": [1], "example/service": [1]}` to its watcher configuration. The prototype applies this list before dispatching a workflow or publishing a status, including when it resumes an unfinished batch.
 
 Use `openguildkit-ci github --config integration.json --state ./state --run` to inspect the resulting checks. For continuous operation, copy the [GitHub Actions recheck template](pilot/recheck-workflow.yml) to `.github/workflows/openguildkit.yml` on a trusted workflow branch. Set `pilot/recheck.json` with `policyRepository`, `policyRef` and `profileRef`, and put the archive's SHA-256 followed by its filename in `pilot/recheck-kit.sha256`. Host the pinned archive as a GitHub Release asset of that project, as expected by the template. Provision read-only policy access if the policy repository is private.
 

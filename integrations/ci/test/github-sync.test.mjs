@@ -102,6 +102,17 @@ function refused(result, pattern) {
   assert.match(result.errors[0].message, pattern);
 }
 
+test('the Jenkins coordinator evaluates only the configured open PR numbers', t => {
+  const { addPull, configure, sync } = githubFixture(t);
+  const target = addPull(7, 45);
+  addPull(8, 20);
+  configure({ profileMaintainer: 'lead', prNumbers: [7] });
+
+  const result = sync({ run: true });
+  assert.deepEqual(result.errors, []);
+  assert.deepEqual(result.current.map(row => [row.pullRequest, row.commit, row.status]), [[7, target, 'failure']]);
+});
+
 test('the GitHub flows accept an adopted profile only after the maintainer approval is verified', t => {
   const { origin, api, addPull, configure, sync, approved } = githubFixture(t);
   addPull(7, 45);
