@@ -1,0 +1,54 @@
+name: OpenGuildKit
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_commit:
+        required: true
+        type: string
+      policy_commit:
+        required: true
+        type: string
+      policy_json:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  statuses: write
+
+concurrency:
+  group: openguildkit-${{ inputs.target_commit }}
+  cancel-in-progress: true
+
+jobs:
+  export-link:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Evaluate the exact PR commit
+        id: evaluate
+        env:
+          TARGET_COMMIT: ${{ inputs.target_commit }}
+          POLICY_COMMIT: ${{ inputs.policy_commit }}
+          POLICY_JSON: ${{ inputs.policy_json }}
+        run: node check.mjs
+      - name: Publish commit status
+        if: ${{ always() && steps.evaluate.outcome != 'skipped' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_COMMIT: ${{ inputs.target_commit }}
+          STATE: ${{ steps.evaluate.outputs.state || 'error' }}
+          DESCRIPTION: ${{ steps.evaluate.outputs.description || 'Evaluation unavailable' }}
+        run: |
+          [[ "$TARGET_COMMIT" =~ ^[0-9a-f]{40}$ ]]
+          gh api "repos/$GITHUB_REPOSITORY/statuses/$TARGET_COMMIT" \
+            -f context=openguildkit/export-link-expiry \
+            -f state="$STATE" -f description="$DESCRIPTION" \
+            -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+      - name: Enforce the verdict
+        if: ${{ steps.evaluate.outputs.state == 'failure' }}
+        run: exit 1
